@@ -27,3 +27,6 @@ def create_app(config_name="development"):
 if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)
+    
+app = create_app("production")
+application = app
