@@ -6,22 +6,31 @@ export default function Header() {
   const { user, logout } = useAuth();
 
   return (
-    <div className="bg-linear-to-r from-amber-500 to-orange-500 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 py-4">
+    <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-6 py-5">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <BookOpen size={32} className="text-white" />
+          
+          {/* Left: Logo + Title */}
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-600 rounded-xl">
+              <BookOpen size={32} className="text-white" />
+            </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">My Notes</h1>
-              <p className="text-amber-100 text-sm">Welcome, {user?.username}!</p>
+              <h1 className="text-2xl font-bold text-gray-800">My Notes</h1>
+              <p className="text-gray-600 text-sm">
+                Hello, <span className="font-medium">{user?.username || "User"}</span>
+              </p>
             </div>
           </div>
+
+          {/* Right: Logout Button */}
           <button
             onClick={logout}
-            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition"
+            className="flex items-center gap-3 px-5 py-3 bg-gray-100 hover:bg-gray-200 
+                     text-gray-700 font-medium rounded-lg transition"
           >
-            <LogOut size={18} />
-            Logout
+            <LogOut size={20} />
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </div>

@@ -44,6 +44,25 @@ def get_note(current_user, id):
 @token_required
 def create_note(current_user):
     data = request.get_json()
+    content = data.get("content", "").strip()
+    title = data.get("title", "Untitled").strip()
+    color = data.get("color", "yellow")
+
+    if not content:
+        return jsonify({"error": "Content cannot be empty"}), 400
+
+    new_note = Note(
+        title=title or "Untitled",
+        content=content,
+        color=color,
+        user_id=current_user.id
+    )
+
+    db.session.add(new_note)
+    db.session.commit()
+
+    return jsonify(new_note.to_dict()), 201
+    data = request.get_json()
     content = data.get("content", "")
 
     if not content.strip():
@@ -66,6 +85,19 @@ def create_note(current_user):
 @note_bp.put("/api/notes/<int:id>")
 @token_required
 def update_note(current_user, id):
+    note = Note.query.filter_by(id=id, user_id=current_user.id).first()
+    if not note:
+        return jsonify({"error": "Note not found"}), 404
+
+    data = request.get_json()
+    note.title = data.get("title", note.title) or "Untitled"
+    note.content = data.get("content", note.content)
+    note.color = data.get("color", note.color)
+    note.date_modified = datetime.datetime.utcnow()
+
+    db.session.commit()
+
+    return jsonify(note.to_dict()), 200
     note = Note.query.filter_by(id=id, user_id=current_user.id).first()
     if not note:
         return jsonify({"error": "Note not found"}), 404

@@ -1,112 +1,90 @@
 const API_URL = 'http://localhost:5000';
 
+// Helper to get token from localStorage
 const getAuthHeader = () => {
   const token = localStorage.getItem('token');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 export const notesAPI = {
-  // Get all notes
+  // Get notes (active or archived)
   getNotes: async (archived = false) => {
-    const response = await fetch(`${API_URL}/api/notes?archived=${archived}`, {
-      headers: getAuthHeader()
+    const res = await fetch(`${API_URL}/api/notes?archived=${archived}`, {
+      headers: getAuthHeader(),
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch notes');
-    }
-    
-    return response.json();
+
+    if (!res.ok) throw new Error('Failed to load notes');
+    return res.json();
   },
 
-  // Get a specific note
-  getNote: async (id) => {
-    const response = await fetch(`${API_URL}/api/notes/${id}`, {
-      headers: getAuthHeader()
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch note');
-    }
-    
-    return response.json();
-  },
-
-  // Create a new note
+  // Create new note
   createNote: async (noteData) => {
-    const response = await fetch(`${API_URL}/api/notes`, {
+    const res = await fetch(`${API_URL}/api/notes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...getAuthHeader()
+        ...getAuthHeader(),
       },
-      body: JSON.stringify(noteData)
+      body: JSON.stringify({
+        title: noteData.title || 'Untitled Note',
+        content: noteData.content,
+        color: noteData.color || 'yellow', // NOW SAVED CORRECTLY
+      }),
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to create note');
-    }
-    
-    return response.json();
+
+    if (!res.ok) throw new Error('Failed to create note');
+    return res.json();
   },
 
-  // Update a note
-  updateNote: async (id, updates) => {
-    const response = await fetch(`${API_URL}/api/notes/${id}`, {
+  // Update existing note
+  updateNote: async (id, noteData) => {
+    const res = await fetch(`${API_URL}/api/notes/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        ...getAuthHeader()
+        ...getAuthHeader(),
       },
-      body: JSON.stringify(updates)
+      body: JSON.stringify({
+        title: noteData.title || 'Untitled Note',
+        content: noteData.content,
+        color: noteData.color || 'yellow', // NOW SAVED CORRECTLY
+      }),
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to update note');
-    }
-    
-    return response.json();
+
+    if (!res.ok) throw new Error('Failed to update note');
+    return res.json();
   },
 
-  // Delete a note
+  // Delete note
   deleteNote: async (id) => {
-    const response = await fetch(`${API_URL}/api/notes/${id}`, {
+    const res = await fetch(`${API_URL}/api/notes/${id}`, {
       method: 'DELETE',
-      headers: getAuthHeader()
+      headers: getAuthHeader(),
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to delete note');
-    }
-    
-    return response.json();
+
+    if (!res.ok) throw new Error('Failed to delete note');
+    return res.json();
   },
 
-  // Toggle pin status
+  // Toggle pin
   togglePin: async (id) => {
-    const response = await fetch(`${API_URL}/api/notes/${id}/pin`, {
+    const res = await fetch(`${API_URL}/api/notes/${id}/pin`, {
       method: 'PATCH',
-      headers: getAuthHeader()
+      headers: getAuthHeader(),
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to toggle pin');
-    }
-    
-    return response.json();
+
+    if (!res.ok) throw new Error('Failed to pin note');
+    return res.json();
   },
 
-  // Toggle archive status
+  // Toggle archive
   toggleArchive: async (id) => {
-    const response = await fetch(`${API_URL}/api/notes/${id}/archive`, {
+    const res = await fetch(`${API_URL}/api/notes/${id}/archive`, {
       method: 'PATCH',
-      headers: getAuthHeader()
+      headers: getAuthHeader(),
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to toggle archive');
-    }
-    
-    return response.json();
-  }
+
+    if (!res.ok) throw new Error('Failed to archive note');
+    return res.json();
+  },
 };

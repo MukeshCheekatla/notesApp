@@ -4,134 +4,100 @@ import { useAuth } from "../context/AuthContext";
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [authMode, setAuthMode] = useState("login");
+  const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { login, register } = useAuth();
 
   const handleSubmit = async () => {
-    setError("");
+    if (!username || !password) {
+      setError("Please enter username and password");
+      return;
+    }
+
     setLoading(true);
+    setError("");
 
     try {
-      const result =
-        authMode === "login"
-          ? await login(username, password)
-          : await register(username, password);
-
-      if (!result.success) {
-        setError(result.error || "Authentication failed");
+      if (isLogin) {
+        await login(username, password);
+      } else {
+        await register(username, password);
       }
-    } catch {
-      setError("Network error. Make sure the server is running.");
+    } catch (err) {
+      setError("Invalid username or password");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") handleSubmit();
-  };
-
   return (
-    <div className="min-h-screen flex flex-col justify-center bg-gray-900 px-6 py-12">
-      {/* Logo + Title */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        
-        <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-white">
-          {authMode === "login" ? "Sign in to your account" : "Create an account"}
-        </h2>
-      </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      {/* Subtle Dots Background */}
+      <div className="absolute inset-0 bg-dots opacity-5"></div>
 
-      {/* Auth card */}
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm bg-white/10 p-8 rounded-xl shadow-xl backdrop-blur">
+      <div className="relative bg-white rounded-2xl shadow-lg border border-gray-200 p-8 w-full max-w-md">
+        {/* Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">My Notes</h1>
+          <p className="text-gray-600 mt-2">
+            {isLogin ? "Welcome back!" : "Create your account"}
+          </p>
+        </div>
+
+        {/* Error */}
         {error && (
-          <div className="bg-red-500/20 text-red-300 border border-red-500 rounded-md px-4 py-2 mb-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center mb-6">
             {error}
           </div>
         )}
 
-        <div className="space-y-6">
-          {/* Username */}
-          <div>
-            <label className="block text-sm/6 font-medium text-gray-200">
-              Username
-            </label>
-            <div className="mt-2">
-              <input
-                type="text"
-                value={username}
-                onKeyPress={handleKeyPress}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={loading}
-                className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:outline-indigo-500"
-              />
-            </div>
-          </div>
+        {/* Form */}
+        <div className="space-y-5">
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition"
+          />
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm/6 font-medium text-gray-200">
-              Password
-            </label>
-            <div className="mt-2">
-              <input
-                type="password"
-                value={password}
-                onKeyPress={handleKeyPress}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:outline-indigo-500"
-              />
-            </div>
-          </div>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition"
+          />
 
-          {/* Submit */}
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-400 disabled:bg-indigo-300"
+            className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400"
           >
-            {loading
-              ? "Loading..."
-              : authMode === "login"
-              ? "Sign in"
-              : "Sign up"}
+            {loading ? "Please wait..." : isLogin ? "Sign In" : "Sign Up"}
           </button>
         </div>
 
         {/* Switch Mode */}
-        <p className="mt-10 text-center text-sm text-gray-400">
-          {authMode === "login" ? (
-            <>
-              Not a member?{" "}
-              <button
-                disabled={loading}
-                onClick={() => {
-                  setAuthMode("register");
-                  setError("");
-                }}
-                className="font-semibold text-indigo-400 hover:text-indigo-300"
-              >
-                Create an account
-              </button>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-              <button
-                disabled={loading}
-                onClick={() => {
-                  setAuthMode("login");
-                  setError("");
-                }}
-                className="font-semibold text-indigo-400 hover:text-indigo-300"
-              >
-                Sign in
-              </button>
-            </>
-          )}
+        <div className="text-center mt-6">
+          <p className="text-gray-600">
+            {isLogin ? "New here? " : "Already have an account? "}
+            <button
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError("");
+              }}
+              className="text-blue-600 font-medium hover:underline"
+            >
+              {isLogin ? "Create account" : "Sign in"}
+            </button>
+          </p>
+        </div>
+
+        <p className="text-center text-gray-500 text-sm mt-10">
+          Keep your notes safe and organized
         </p>
       </div>
     </div>

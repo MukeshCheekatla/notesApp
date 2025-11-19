@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Archive, Home } from 'lucide-react';
+import { Plus, Archive, Home, Inbox } from 'lucide-react';
 import { notesAPI } from '../api/api';
 import NoteCard from './NoteCard';
 import NoteModal from './NoteModal';
@@ -17,26 +17,27 @@ export default function NotesList() {
 
   const fetchNotes = async () => {
     try {
+      setLoading(true);
       const data = await notesAPI.getNotes(showArchived);
       setNotes(data);
     } catch (err) {
-      console.error('Failed to fetch notes:', err);
+      console.error('Failed to load notes');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateNote = () => {
+  const openNewNote = () => {
     setEditingNote(null);
     setIsModalOpen(true);
   };
 
-  const handleEditNote = (note) => {
+  const openEditNote = (note) => {
     setEditingNote(note);
     setIsModalOpen(true);
   };
 
-  const handleSaveNote = async (noteData) => {
+  const saveNote = async (noteData) => {
     try {
       if (editingNote) {
         await notesAPI.updateNote(editingNote.id, noteData);
@@ -44,153 +45,159 @@ export default function NotesList() {
         await notesAPI.createNote(noteData);
       }
       fetchNotes();
+      setIsModalOpen(false);
     } catch (err) {
-      console.error('Failed to save note:', err);
+      console.error('Failed to save note');
     }
   };
 
-  const handleDeleteNote = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this note?')) return;
-    
-    try {
-      await notesAPI.deleteNote(id);
-      fetchNotes();
-    } catch (err) {
-      console.error('Failed to delete note:', err);
-    }
+  // These functions are passed to NoteCard — it will handle delete confirmation itself
+  const deleteNote = async (id) => {
+    await notesAPI.deleteNote(id);
+    fetchNotes();
   };
 
-  const handleTogglePin = async (id) => {
-    try {
-      await notesAPI.togglePin(id);
-      fetchNotes();
-    } catch (err) {
-      console.error('Failed to toggle pin:', err);
-    }
+  const togglePin = async (id) => {
+    await notesAPI.togglePin(id);
+    fetchNotes();
   };
 
-  const handleToggleArchive = async (id) => {
-    try {
-      await notesAPI.toggleArchive(id);
-      fetchNotes();
-    } catch (err) {
-      console.error('Failed to toggle archive:', err);
-    }
+  const toggleArchive = async (id) => {
+    await notesAPI.toggleArchive(id);
+    fetchNotes();
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading notes...</div>
+      <div className="flex items-center justify-center py-32">
+        <p className="text-gray-500 text-lg">Loading your notes...</p>
       </div>
     );
   }
 
-  const pinnedNotes = notes.filter(note => note.pinned);
-  const unpinnedNotes = notes.filter(note => !note.pinned);
+  const pinnedNotes = notes.filter(n => n.pinned);
+  const otherNotes = notes.filter(n => !n.pinned);
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-2">
+    <div className="max-w-7xl mx-auto px-6 py-10">
+
+      {/* Tabs + New Note Button */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
+        
+        <div className="flex gap-4">
           <button
             onClick={() => setShowArchived(false)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-              !showArchived
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`flex items-center gap-3 px-6 py-3 rounded-xl font-medium transition 
+              ${!showArchived 
+                ? 'bg-blue-600 text-white shadow-md' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
           >
-            <Home size={18} />
+            <Home size={20} />
             Notes
           </button>
+
           <button
             onClick={() => setShowArchived(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-              showArchived
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`flex items-center gap-3 px-6 py-3 rounded-xl font-medium transition 
+              ${showArchived 
+                ? 'bg-blue-600 text-white shadow-md' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
           >
-            <Archive size={18} />
+            <Archive size={20} />
             Archived
           </button>
         </div>
-        
+
         <button
-          onClick={handleCreateNote}
-          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg"
+          onClick={openNewNote}
+          className="flex items-center gap-3 px-6 py-4 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition shadow-md"
         >
-          <Plus size={20} />
+          <Plus size={24} />
           New Note
         </button>
       </div>
 
-      {notes.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-gray-500 text-lg mb-4">
-            {showArchived ? 'No archived notes' : 'No notes yet'}
-          </p>
-          {!showArchived && (
-            <button
-              onClick={handleCreateNote}
-              className="text-blue-600 hover:underline"
-            >
-              Create your first note
-            </button>
-          )}
+      {/* Empty State */}
+      {notes.length === 0 && (
+        <div className="text-center py-24">
+          <div className="inline-block p-10 bg-gray-50 rounded-3xl">
+            {showArchived ? (
+              <>
+                <Archive size={70} className="mx-auto mb-6 text-gray-400" />
+                <p className="text-xl text-gray-600">No archived notes</p>
+              </>
+            ) : (
+              <>
+                <Inbox size={70} className="mx-auto mb-6 text-gray-400" />
+                <p className="text-xl text-gray-600 mb-4">No notes yet</p>
+                <button
+                  onClick={openNewNote}
+                  className="text-blue-600 hover:text-blue-700 font-semibold underline"
+                >
+                  Create your first note
+                </button>
+              </>
+            )}
+          </div>
         </div>
-      ) : (
-        <div>
+      )}
+
+      {/* Notes Grid */}
+      {notes.length > 0 && (
+        <div className="space-y-16">
+          {/* Pinned Section */}
           {pinnedNotes.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-sm font-semibold text-gray-600 mb-3 uppercase">
-                Pinned
+            <section>
+              <h2 className="text-lg font-bold text-gray-700 mb-6 flex items-center gap-2">
+                <Pin size={20} className="fill-blue-600 text-blue-600" />
+                Pinned Notes
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {pinnedNotes.map((note) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {pinnedNotes.map(note => (
                   <NoteCard
                     key={note.id}
                     note={note}
-                    onEdit={handleEditNote}
-                    onDelete={handleDeleteNote}
-                    onTogglePin={handleTogglePin}
-                    onToggleArchive={handleToggleArchive}
+                    onEdit={openEditNote}
+                    onDelete={deleteNote}
+                    onTogglePin={togglePin}
+                    onToggleArchive={toggleArchive}
                   />
                 ))}
               </div>
-            </div>
+            </section>
           )}
 
-          {unpinnedNotes.length > 0 && (
-            <div>
+          {/* Other Notes */}
+          {otherNotes.length > 0 && (
+            <section>
               {pinnedNotes.length > 0 && (
-                <h2 className="text-sm font-semibold text-gray-600 mb-3 uppercase">
-                  Others
+                <h2 className="text-lg font-bold text-gray-700 mb-6">
+                  Other Notes
                 </h2>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {unpinnedNotes.map((note) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {otherNotes.map(note => (
                   <NoteCard
-                    key={note.id}
+                    key={2}
                     note={note}
-                    onEdit={handleEditNote}
-                    onDelete={handleDeleteNote}
-                    onTogglePin={handleTogglePin}
-                    onToggleArchive={handleToggleArchive}
+                    onEdit={openEditNote}
+                    onDelete={deleteNote}
+                    onTogglePin={togglePin}
+                    onToggleArchive={toggleArchive}
                   />
                 ))}
               </div>
-            </div>
+            </section>
           )}
         </div>
       )}
 
+      {/* Modal for Create/Edit */}
       <NoteModal
         note={editingNote}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveNote}
+        onSave={saveNote}
       />
     </div>
   );
