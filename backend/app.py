@@ -1,5 +1,9 @@
 from dotenv import load_dotenv
-load_dotenv()
+import os
+
+if os.getenv("FLASK_ENV") == "development":
+    load_dotenv()
+
 
 from flask import Flask
 from flask_cors import CORS
