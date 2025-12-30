@@ -54,7 +54,13 @@ export default function Login() {
         )}
 
         {/* Form */}
-        <div className="space-y-5">
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }} 
+          className="space-y-5"
+        >
           <input
             type="text"
             placeholder="Username"
@@ -72,13 +78,13 @@ export default function Login() {
           />
 
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading}
             className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400"
           >
             {loading ? "Please wait..." : isLogin ? "Sign In" : "Sign Up"}
           </button>
-        </div>
+        </form>
 
         {/* Switch Mode */}
         <div className="text-center mt-6">

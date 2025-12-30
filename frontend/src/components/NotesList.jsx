@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Archive, Home, Inbox } from 'lucide-react';
+import { Plus, Archive, Home, Inbox, Pin, Search } from 'lucide-react';
 import { notesAPI } from '../api/api';
 import NoteCard from './NoteCard';
 import NoteModal from './NoteModal';
 
-export default function NotesList() {
+export default function NotesList({ searchQuery }) {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -75,8 +75,13 @@ export default function NotesList() {
     );
   }
 
-  const pinnedNotes = notes.filter(n => n.pinned);
-  const otherNotes = notes.filter(n => !n.pinned);
+  const filteredNotes = notes.filter(n => 
+    n.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    n.content?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const pinnedNotes = filteredNotes.filter(n => n.pinned);
+  const otherNotes = filteredNotes.filter(n => !n.pinned);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
@@ -118,10 +123,15 @@ export default function NotesList() {
       </div>
 
       {/* Empty State */}
-      {notes.length === 0 && (
+      {filteredNotes.length === 0 && (
         <div className="text-center py-24">
           <div className="inline-block p-10 bg-gray-50 rounded-3xl">
-            {showArchived ? (
+            {searchQuery ? (
+              <>
+                <Search size={70} className="mx-auto mb-6 text-gray-400" />
+                <p className="text-xl text-gray-600">No notes match your search</p>
+              </>
+            ) : showArchived ? (
               <>
                 <Archive size={70} className="mx-auto mb-6 text-gray-400" />
                 <p className="text-xl text-gray-600">No archived notes</p>
@@ -143,7 +153,7 @@ export default function NotesList() {
       )}
 
       {/* Notes Grid */}
-      {notes.length > 0 && (
+      {filteredNotes.length > 0 && (
         <div className="space-y-16">
           {/* Pinned Section */}
           {pinnedNotes.length > 0 && (
@@ -178,7 +188,7 @@ export default function NotesList() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {otherNotes.map(note => (
                   <NoteCard
-                    key={2}
+                    key={note.id}
                     note={note}
                     onEdit={openEditNote}
                     onDelete={deleteNote}

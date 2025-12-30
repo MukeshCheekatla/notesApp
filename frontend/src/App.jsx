@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Header from './components/Header';
@@ -6,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Beautiful full-screen loading state
   if (loading) {
@@ -27,9 +29,9 @@ function AppContent() {
   // Main App - Beautiful gradient background
   return (
     <div className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50">
-      <Header />
+      <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       <main className="max-w-7xl mx-auto px-6 py-10">
-        <NotesList />
+        <NotesList searchQuery={searchQuery} />
       </main>
     </div>
   );

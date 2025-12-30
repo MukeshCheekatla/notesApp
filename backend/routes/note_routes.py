@@ -90,9 +90,12 @@ def update_note(current_user, id):
         return jsonify({"error": "Note not found"}), 404
 
     data = request.get_json()
-    note.title = data.get("title", note.title) or "Untitled"
-    note.content = data.get("content", note.content)
-    note.color = data.get("color", note.color)
+    if "title" in data:
+        note.title = data.get("title").strip() or "Untitled"
+    if "content" in data:
+        note.content = data.get("content")
+    if "color" in data:
+        note.color = data.get("color")
     note.date_modified = datetime.datetime.utcnow()
 
     db.session.commit()
